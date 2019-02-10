@@ -44,6 +44,8 @@ def evaluate_subject_models(data, labels, modelpath):
             X_valid = sc.transform(X_valid)
             
             model = P300_CNNT(n_channels = X_train.shape[2])
+            print(model.summary())
+            
             model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
             
             model.fit(X_train,
