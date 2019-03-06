@@ -54,7 +54,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                   epochs = 100,
                   validation_data = (X_valid, y_valid))
 
-        model.save(modelpath + '/s' + str(i) + 'p' + str(k) + '.h5')
+        model.save(modelpath + '/s' + str(k) + '.h5')
         proba_valid = model.predict(X_valid)
         aucs[k] = roc_auc_score(y_valid, proba_valid)
         accuracies[k] = accuracy_score(y_valid, np.round(proba_valid))
