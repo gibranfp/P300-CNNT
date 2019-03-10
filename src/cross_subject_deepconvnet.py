@@ -23,6 +23,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     using random cross validation.
     """
     aucs = np.zeros(22)
+    accuracies = np.zeros(22)
     data = data.reshape((22 * 2880, 206, data.shape[3]))
     labels = labels.reshape((22 * 2880))
     groups = [i for i in range(22) for j in range(2880)]
