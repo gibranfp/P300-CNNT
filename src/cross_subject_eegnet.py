@@ -66,8 +66,8 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         aucs[k] = roc_auc_score(y_onehot_valid, proba_valid)
         accuracies[k] = accuracy_score(y_onehot_valid, np.round(proba_valid))
         print('AUC: {0} ACC: {1}'.format(aucs[k], accuracies[k]))
-    np.savetxt(modelpath + '/aucs_s' + str(i) + '.npy', aucs)
-    np.savetxt(modelpath + '/accuracies_s' + str(i) + '.npy', accuracies)
+    np.savetxt(modelpath + '/aucs.npy', aucs)
+    np.savetxt(modelpath + '/accuracies.npy', accuracies)
 
 def main():
     """

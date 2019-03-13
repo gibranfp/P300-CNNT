@@ -58,7 +58,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                   y_onehot_train,
                   batch_size = 32,
                   sample_weight = sample_weights,
-                  epochs = 50,
+                  epochs = 1,
                   validation_data = (X_valid, y_onehot_valid))
 
         model.save(modelpath + '/s' + str(k) + '.h5')
@@ -66,8 +66,8 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         aucs[k] = roc_auc_score(y_onehot_valid, proba_valid)
         accuracies[k] = accuracy_score(y_onehot_valid, np.round(proba_valid))
         print('AUC: {0} ACC: {1}'.format(aucs[k], accuracies[k]))
-    np.savetxt(modelpath + '/aucs_s' + str(i) + '.npy', aucs)
-    np.savetxt(modelpath + '/accuracies_s' + str(i) + '.npy', accuracies)
+    np.savetxt(modelpath + '/aucs.npy', aucs)
+    np.savetxt(modelpath + '/accuracies.npy', accuracies)
 
 def main():
     """
