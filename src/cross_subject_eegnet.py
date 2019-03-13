@@ -58,7 +58,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                   y_onehot_train,
                   batch_size = 32,
                   sample_weight = sample_weights,
-                  epochs = 50,
+                  epochs = 100,
                   validation_data = (X_valid, y_onehot_valid))
 
         model.save(modelpath + '/s' + str(k) + '.h5')
