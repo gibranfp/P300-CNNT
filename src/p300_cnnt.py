@@ -12,27 +12,37 @@ from __future__ import print_function
 import os
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
+from tensorflow.keras import backend as K
+
+def create_base_network():
+  eeg_input = Input(shape=(206,1))
+
+  x = Conv1D(64, 16, padding = 'same')(eeg_input)
+  x = BatchNormalization()(x)
+  x = Activation('relu')(x)
+  x = MaxPooling1D(2, strides = 2)(x)
+  x = Dropout(0.5)(x)
+  x = Conv1D(128, 16, padding = 'same')(x)
+  x = BatchNormalization()(x)
+  x = Activation('relu')(x)
+  x = MaxPooling1D(2, strides = 2)(x)
+  x = Dropout(0.5)(x)
+  x = Flatten()(x)
+
+  return Model(eeg_input, x)
 
 def P300_CNNT(activation = 'relu', pad = 'same', n_channels = 6):
-  eeg_input = Input(shape=(206, n_channels))
-  
-  model = Conv1D(64, 8, padding = 'same')(eeg_input)
-  model = BatchNormalization()(model)
-  model = Activation('relu')(model)
-  model = MaxPooling1D(2, strides = 2)(model)
-  model = Dropout(0.5)(model)
+  base_net = create_base_network()
+  data_input = Input(shape=(206, n_channels))
+  branch_outputs = []
+  for c in range(n_channels):
+    branch_in = Lambda(lambda x: K.expand_dims(x[:, :, c], -1))(data_input)
+    out = base_net(branch_in)
+    branch_outputs.append(out)
+    
+  all_ch = Add()(branch_outputs)
+  x = Dense(128, activation = 'relu')(all_ch)
+  x = Dropout(0.5)(x)
+  prediction = Dense(1, activation = 'sigmoid')(all_ch)
 
-  model = Conv1D(128, 8, padding = 'same')(model)
-  model = BatchNormalization()(model)
-  model = Activation('relu')(model)
-  model = MaxPooling1D(2, strides = 2)(model)
-  model = Dropout(0.5)(model)
-
-  model = Flatten()(model)
-  model = Dense(256, activation = 'relu')(model)
-  model = Dropout(0.5)(model)
-  model = Dense(128, activation = 'relu')(model)
-  model = Dropout(0.5)(model)
-  model = Dense(1, activation = 'sigmoid')(model)
-
-  return Model(eeg_input, model, name='p300-cnnt')
+  return Model(data_input, prediction, name='p300-cnnt')  
