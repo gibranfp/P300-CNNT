@@ -23,10 +23,10 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     """
     aucs = np.zeros(22)
     accuracies = np.zeros(22)
-    confusion[k] = np.zeros(22)
-    prec_score[k] = np.zeros(22)
-    f1[k] = np.zeros(22)
-    rec_score[k] = np.zeros(22)
+    confusion = np.zeros(22)
+    prec_score = np.zeros(22)
+    f1 = np.zeros(22)
+    rec_score = np.zeros(22)
         
     data = data.reshape((22 * 2880, 206, data.shape[3]))
     labels = labels.reshape((22 * 2880))
