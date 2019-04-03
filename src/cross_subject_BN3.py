@@ -63,7 +63,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
 
-        es = EarlyStopping(monitor='val_loss', mode='min', restore_best_weights=True, patience=50)
+        es = EarlyStopping(monitor='val_loss', mode='min', patience=50)
         model.fit(X_train,
                   y_onehot_train,
                   batch_size = 32,
