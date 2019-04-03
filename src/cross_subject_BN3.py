@@ -13,7 +13,7 @@ import sys
 import numpy as np
 from EEGModels import EEGNet
 from BN3model import BN3
-#from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
 from sklearn.utils import resample, class_weight
 from utils import *
