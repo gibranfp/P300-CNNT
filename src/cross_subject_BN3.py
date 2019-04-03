@@ -11,6 +11,7 @@ Script to evaluate a ResNet50 architecture for single-trial cross_subject P300 d
 import argparse
 import sys
 import numpy as np
+from EEGModels import EEGNet
 from BN3model import BN3
 #from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
@@ -62,7 +63,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
 
-        #es = EarlyStopping(monitor='val_loss', mode='min', restore_best_weights=True, patience=50)
+        es = EarlyStopping(monitor='val_loss', mode='min', restore_best_weights=True, patience=50)
         model.fit(X_train,
                   y_onehot_train,
                   batch_size = 32,
