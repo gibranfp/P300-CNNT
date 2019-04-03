@@ -15,7 +15,7 @@ from tensorflow.keras import backend as K
 def BN3(Chans = 6, Samples = 206, Ns=16):
     
     input1       = Input(shape = (Samples, Chans))
-    block1       = BatchNormalization(axis = 1)(block1)
+    block1       = BatchNormalization(axis = 1)(input1)
     ##################################################################
     
     block1       = Conv1D(Ns, 1, stride=1, padding = 'same',
