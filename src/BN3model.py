@@ -18,10 +18,10 @@ def BN3(Chans = 6, Samples = 206, Ns=16):
     block1       = BatchNormalization(axis = 1)(input1)
     ##################################################################
     
-    block1       = Conv1D(Ns, 1, stride=1, padding = 'same',
+    block1       = Conv1D(Ns, 1, strides=1, padding = 'same',
                             kernel_initializer='glorot_uniform',
                             activation='linear', use_bias = True)(block1)
-    block1       = Conv1D(16, 20, stride=20, padding = 'same',
+    block1       = Conv1D(16, 20, strides=20, padding = 'same',
                             kernel_initializer='glorot_uniform',
                                        use_bias = True)(block1)
     block1       = BatchNormalization()(block1)
