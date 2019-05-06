@@ -19,6 +19,6 @@ def FCNN(Chans = 6, Samples = 206, Ns=16):
     ##################################################################
     dense        = Dense(2, activation = 'tanh',
 		   	 kernel_initializer='glorot_uniform')(block1)
-    prediction   = Dense(1, activation = 'sigmoid')(block1)
+    prediction   = Dense(1, activation = 'sigmoid')(dense)
     
     return Model(inputs=input1, outputs=prediction, name='FCNN')
