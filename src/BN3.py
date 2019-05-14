@@ -21,7 +21,7 @@ from tensorflow.keras import backend as K
 
 def BN3(Chans = 6, Samples = 206):
     input1       = Input(shape = (Samples, Chans))
-    block1       = BatchNormalization()(block1)
+    block1       = BatchNormalization()(input1)
     block1       = Conv1D(16, 1, stride = 1, padding = 'same', use_bias = True,
                           data_format = 'channels_last')(block1)
     block1       = Activation('relu')(block1)
