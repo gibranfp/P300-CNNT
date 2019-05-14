@@ -1,4 +1,4 @@
-1#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8
 #
 # Montserrat Alvarado <amontserrat@gmail.com> / Gibran Fuentes-Pineda <gibranfp@unam.mx>
