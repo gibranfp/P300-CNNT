@@ -54,7 +54,7 @@ def evaluate_subject_models(data, labels, modelpath):
 
             print('Partition {0}: X_train = {1}, X_valid = {2}'.format(k, X_train.shape, X_valid.shape))
 
-            model = FCNN(Chans = 6, Samples = 206, Ns=16)
+            model = FCNN()
             print(model.summary())
             
             model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
