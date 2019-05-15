@@ -54,7 +54,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
         X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
         
-        model = FCNN(Chans = 6, Samples = 206, Ns=16)
+        model = FCNN()
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
 
