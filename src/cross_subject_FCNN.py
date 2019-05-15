@@ -16,7 +16,7 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.utils import resample, class_weight
-from FCNN import FCNN
+from FCNNmodel import FCNN
 from utils import *
 
 def evaluate_cross_subject_model(data, labels, modelpath):
