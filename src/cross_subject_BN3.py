@@ -11,7 +11,6 @@ Script to evaluate a BN3 architecture for single-trial cross_subject P300 detect
 import argparse
 import sys
 import numpy as np
-from EEGModels import EEGNet
 from BN3model import BN3
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
