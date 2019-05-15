@@ -25,6 +25,10 @@ def evaluate_subject_models(data, labels, modelpath):
     for i in range(data.shape[0]):
         aucs = np.zeros(10)
         accuracies = np.zeros(10)
+        precisions =  np.zeros(10)
+        recalls =  np.zeros(10)
+        aps =  np.zeros(10)
+        f1scores =  np.zeros(22)
         print("Training for subject {0}: ".format(i))
         for k, (t, v) in enumerate(cv.split(data[i], labels[i])):
             X_train, y_train, X_valid, y_valid = data[i, t], labels[i, t], data[i, v], labels[i, v]
@@ -59,9 +63,23 @@ def evaluate_subject_models(data, labels, modelpath):
             proba_valid = model.predict(X_valid)
             aucs[k] = roc_auc_score(y_valid, proba_valid)
             accuracies[k] = accuracy_score(y_valid, np.round(proba_valid))
-            print('AUC: {0} ACC: {1}'.format(aucs[k], accuracies[k]))
+                        precisions[k] = precision_score(y_onehot_valid, proba_valid)
+            recalls[k] = recall_score(y_onehot_valid, proba_valid)
+            aps[k] = average_precision_score(y_onehot_valid, proba_valid)
+            f1scores[k] = f1_score(y_onehot_valid, proba_valid)
+            print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
+                                                                   accuracies[k],
+                                                                   precisions[k],
+                                                                   recalls[k],
+                                                                   aps[k],
+                                                                   f1scores[k]))
+
         np.savetxt(modelpath + '/aucs_s' + str(i) + '.npy', aucs)
         np.savetxt(modelpath + '/accuracies_s' + str(i) + '.npy', accuracies)
+        np.savetxt(modelpath + '/precisions' + str(i) + '.npy', precisions)
+        np.savetxt(modelpath + '/recalls' + str(i) + '.npy', recalls)
+        np.savetxt(modelpath + '/aps' + str(i) + '.npy', aps)
+        np.savetxt(modelpath + '/f1scores' + str(i) + '.npy', f1scores)
             
 def main():
     """
