@@ -24,20 +24,34 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     """
     aucs = np.zeros(22)
     accuracies = np.zeros(22)
+    precisions =  np.zeros(22)
+    recalls =  np.zeros(22)
+    aps =  np.zeros(22)
+    f1scores =  np.zeros(22)
     data = data.reshape((22 * 2880, 206, data.shape[3]))
     labels = labels.reshape((22 * 2880))
     groups = [i for i in range(22) for j in range(2880)]
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-
-        print("Partition {0}: train = {1}, valid = {2}".format(k, X_train.shape, X_test.shape))
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)    
+        
+        print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
         sample_weights = class_weight.compute_sample_weight('balanced', y_train)
+
+        y_onehot_train = to_categorical(y_train)
+        y_onehot_valid = to_categorical(y_valid)
+        y_onehot_test = to_categorical(y_test)
 
         sc = EEGChannelScaler()
         X_train = sc.fit_transform(X_train)
+        X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
 
+        X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
+        X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
+        X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
+        
         model = P300_CNNT(n_channels = X_train.shape[2])
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
@@ -53,11 +67,25 @@ def evaluate_cross_subject_model(data, labels, modelpath):
 
         model.save(modelpath + '/s' + str(k) + '.h5')
         proba_test = model.predict(X_test)
-        aucs[k] = roc_auc_score(y_test, proba_test)
-        accuracies[k] = accuracy_score(y_test, np.round(proba_test))
-        print('AUC: {0} ACC: {1}'.format(aucs[k], accuracies[k]))
+        aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
+        accuracies[k] = accuracy_score(y_test, proba_test[:, 1].round())
+        precisions[k] = precision_score(y_test, proba_test[:, 1].round())
+        recalls[k] = recall_score(y_test, proba_test[:, 1].round())
+        aps[k] = average_precision_score(y_test, proba_test[:, 1])
+        f1scores[k] = f1_score(y_test, proba_test[:, 1].round())
+        print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
+                                                                           accuracies[k],
+                                                                           precisions[k],
+                                                                           recalls[k],
+                                                                           aps[k],
+                                                                           f1scores[k]))
+        
     np.savetxt(modelpath + '/aucs.npy', aucs)
     np.savetxt(modelpath + '/accuracies.npy', accuracies)
+    np.savetxt(modelpath + '/precisions.npy', precisions)
+    np.savetxt(modelpath + '/recalls.npy', recalls)
+    np.savetxt(modelpath + '/aps.npy', aps)
+    np.savetxt(modelpath + '/f1scores.npy', f1scores)
 
 def main():
     """
