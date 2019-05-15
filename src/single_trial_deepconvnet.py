@@ -29,7 +29,7 @@ def evaluate_subject_models(data, labels, modelpath):
         precisions =  np.zeros(10)
         recalls =  np.zeros(10)
         aps =  np.zeros(10)
-        f1scores =  np.zeros(22)
+        f1scores =  np.zeros(10)
         print("Training for subject {0}: ".format(i))
         for k, (t, v) in enumerate(cv.split(data[i], labels[i])):
             X_train, y_train, X_valid, y_valid = data[i, t], labels[i, t], data[i, v], labels[i, v]
