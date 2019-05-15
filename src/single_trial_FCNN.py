@@ -15,7 +15,7 @@ from tensorflow.keras.metrics import binary_accuracy
 from tensorflow.keras.layers import concatenate
 from sklearn.utils import resample, class_weight
 from sklearn.model_selection import *
-from EEGModels import DeepConvNet
+from FCNNmodel import FCNN
 from utils import *
 
 def evaluate_subject_models(data, labels, modelpath):
