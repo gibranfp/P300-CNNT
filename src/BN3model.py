@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8
 #
-# Montserrat Alvarado <amontserrat@gmail.com> / Gibran Fuentes-Pineda <gibranfp@unam.mx>
+# Gibran Fuentes-Pineda <gibranfp@unam.mx>
 # DMAS-UAM / IIMAS-UNAM
 # 2019
 #
