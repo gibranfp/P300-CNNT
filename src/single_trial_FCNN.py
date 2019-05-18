@@ -66,14 +66,12 @@ def evaluate_subject_models(data, labels, modelpath):
                       epochs = 50,
                       validation_data = (X_valid, y_onehot_valid))
 
-            model.save(modelpath + '/s' + str(i) + 'p' + str(k) + '.h5')
-            proba_valid = model.predict(X_valid)
             aucs[k] = roc_auc_score(y_onehot_valid, proba_valid)
             accuracies[k] = accuracy_score(y_onehot_valid, np.round(proba_valid))
-            precisions[k] = precision_score(y_onehot_valid, proba_valid)
-            recalls[k] = recall_score(y_onehot_valid, proba_valid)
+            precisions[k] = precision_score(y_onehot_valid, np.round(proba_valid), average='Weighted')
+            recalls[k] = recall_score(y_onehot_valid, np.round(proba_valid))
             aps[k] = average_precision_score(y_onehot_valid, proba_valid)
-            f1scores[k] = f1_score(y_onehot_valid, proba_valid)
+            f1scores[k] = f1_score(y_onehot_valid, np.round(proba_valid))
             print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
                                                                    accuracies[k],
                                                                    precisions[k],
@@ -87,6 +85,7 @@ def evaluate_subject_models(data, labels, modelpath):
         np.savetxt(modelpath + '/recalls' + str(i) + '.npy', recalls)
         np.savetxt(modelpath + '/aps' + str(i) + '.npy', aps)
         np.savetxt(modelpath + '/f1scores' + str(i) + '.npy', f1scores)
+
             
 def main():
     """
