@@ -71,7 +71,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
         accuracies[k] = accuracy_score(y_test, proba_test[:, 1].round())
-        precisions[k] = precision_score(y_test, proba_test[:, 1].round())
+        precisions[k] = precision_score(y_test, proba_test[:, 1].round(), average=None)
         recalls[k] = recall_score(y_test, proba_test[:, 1].round())
         aps[k] = average_precision_score(y_test, proba_test[:, 1])
         f1scores[k] = f1_score(y_test, proba_test[:, 1].round())
