@@ -69,7 +69,7 @@ def evaluate_subject_models(data, labels, modelpath):
             proba_valid = model.predict(X_valid)
             aucs[k] = roc_auc_score(y_onehot_valid, proba_valid)
             accuracies[k] = accuracy_score(y_onehot_valid, np.round(proba_valid))
-            precisions[k] = precision_score(y_onehot_valid, np.round(proba_valid), average=None)
+            precisions[k] = precision_score(y_onehot_valid, np.round(proba_valid),average='Weighted'))
             recalls[k] = recall_score(y_onehot_valid, np.round(proba_valid))
             aps[k] = average_precision_score(y_onehot_valid, proba_valid)
             f1scores[k] = f1_score(y_onehot_valid, np.round(proba_valid))
