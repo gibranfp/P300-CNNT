@@ -18,6 +18,9 @@ from sklearn.model_selection import *
 from FCNNmodel import FCNN
 from utils import *
 
+from keras.models import Sequential
+from keras.layers import Dense, Flatten
+
 def evaluate_subject_models(data, labels, modelpath):
     """
     Trains and evaluates subject-dependent models using random cross validation.
@@ -54,10 +57,13 @@ def evaluate_subject_models(data, labels, modelpath):
 
             print('Partition {0}: X_train = {1}, X_valid = {2}'.format(k, X_train.shape, X_valid.shape))
 
-            model = FCNN()
-            print(model.summary())
+            model = Sequential()
+            model.add(Dense(units=2, input_shape=(1,6,206), activation = 'tanh',
+                         kernel_initializer='glorot_uniform', name='densa1'))
+            model.add(Flatten())
+            model.add(Dense(units=2, activation = 'sigmoid', name='densa2'))
             
-            model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
+            model.compile(optimizer = 'adam', loss = 'binary_crossentropy')
                         
             model.fit(X_train,
                       y_onehot_train,
@@ -66,6 +72,8 @@ def evaluate_subject_models(data, labels, modelpath):
                       epochs = 50,
                       validation_data = (X_valid, y_onehot_valid))
 
+            model.save(modelpath + '/s' + str(i) + 'p' + str(k) + '.h5')
+            proba_valid = model.predict(X_valid)
             aucs[k] = roc_auc_score(y_onehot_valid, proba_valid)
             accuracies[k] = accuracy_score(y_onehot_valid, np.round(proba_valid))
             precisions[k] = precision_score(y_onehot_valid, np.round(proba_valid), average='weighted')
