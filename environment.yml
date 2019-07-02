@@ -1,0 +1,14 @@
+name: p300_cnn
+channels:
+   - defaults
+   - anaconda
+   - conda-forge
+dependencies:
+   - python>=3.7
+   - numpy
+   - matplotlib
+   - scikit-learn
+   - cudatoolkit=10.0
+   - cudnn
+   - pip:
+     - tensorflow==1.12.0
