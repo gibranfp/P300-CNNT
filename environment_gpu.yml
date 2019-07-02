@@ -10,5 +10,4 @@ dependencies:
    - scikit-learn
    - cudatoolkit=10.0
    - cudnn
-   - pip:
-     - tensorflow==1.12.0
+   - tensorflow-gpu==1.13.1
