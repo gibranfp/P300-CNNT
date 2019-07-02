@@ -6,7 +6,7 @@
 # 2019
 #
 """
-Script to evaluate a ResNet50 architecture for single-trial cross_subject P300 detection using cross-validation
+Script to evaluate EEGNet for single-trial cross-subject P300 detection
 """
 import argparse
 import sys
@@ -15,7 +15,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
-from sklearn.utils import resample, class_weight
 from EEGModels import EEGNet
 from utils import *
 
@@ -24,47 +23,44 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     Trains and evaluates SimpleConv1D architecture for each subject in the P300 Speller database
     using random cross validation.
     """
+    n_sub = data.shape[0]
+    n_ex_sub = data.shape[1]
+    n_samples = data.shape[2]
+    n_channels = data.shape[3]
+
     aucs = np.zeros(22)
     accuracies = np.zeros(22)
     precisions =  np.zeros(22)
     recalls =  np.zeros(22)
     aps =  np.zeros(22)
     f1scores =  np.zeros(22)
+    
     data = data.reshape((22 * 2880, 206, data.shape[3]))
     labels = labels.reshape((22 * 2880))
     groups = [i for i in range(22) for j in range(2880)]
+
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)    
-        
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)            
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
-        sample_weights = class_weight.compute_sample_weight('balanced', y_train)
 
-        y_onehot_train = to_categorical(y_train)
-        y_onehot_valid = to_categorical(y_valid)
-        y_onehot_test = to_categorical(y_test)
-
+        # channel-wise feature standarization
         sc = EEGChannelScaler()
         X_train = sc.fit_transform(X_train)
         X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
-
-        X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
-        X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
-        X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
         
-        model = EEGNet(2, Chans = 6, Samples = 206)
+        model = EEGNet(2, dropoutRate = 0.25, Chans = 6, Samples = 206)
         print(model.summary())
-        model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+        model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
 
-        es = EarlyStopping(monitor='val_loss', mode='min', restore_best_weights=True, patience=50)
+        es = EarlyStopping(monitor = 'val_loss', mode = 'min', patience = 50, restore_best_weights = True)
         model.fit(X_train,
-                  y_onehot_train,
-                  batch_size = 32,
-                  sample_weight = sample_weights,
+                  to_categorical(y_train),
+                  batch_size = 256,
                   epochs = 200,
-                  validation_data = (X_valid, y_onehot_valid),
+                  validation_data = (X_valid, to_categorical(y_valid)),
                   callbacks = [es])
 
         model.save(modelpath + '/s' + str(k) + '.h5')
