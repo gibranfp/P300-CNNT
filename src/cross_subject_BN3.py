@@ -6,7 +6,7 @@
 # 2019
 #
 """
-Script to evaluate a BN3 architecture for single-trial cross_subject P300 detection using cross-validation
+Script to evaluate the BN3 architecture (Liu et al., 2018) for single-trial cross-subject P300 detection
 """
 import argparse
 import sys
@@ -14,50 +14,58 @@ import numpy as np
 from BN3model import BN3
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
-from sklearn.utils import resample, class_weight
 from utils import *
+import pickle
 
 def evaluate_cross_subject_model(data, labels, modelpath):
     """
-    Trains and evaluates BN3 architecture for each subject in the P300 Speller database
-    using random cross validation.
+    Trains and evaluates the BN3 architecture for each subject in the P300 Speller database
+    using leave one group out cross validation.
     """
-    aucs = np.zeros(22)
-    accuracies = np.zeros(22)
-    precisions =  np.zeros(22)
-    recalls =  np.zeros(22)
-    aps =  np.zeros(22)
-    f1scores =  np.zeros(22)        
-    data = data.reshape((22 * 2880, 206, data.shape[3]))
-    labels = labels.reshape((22 * 2880))
-    groups = [i for i in range(22) for j in range(2880)]
+    n_sub = data.shape[0]
+    n_ex_sub = data.shape[1]
+    n_samples = data.shape[2]
+    n_channels = data.shape[3]
+    
+    aucs = np.zeros(n_sub)
+    accuracies = np.zeros(n_sub)
+    precisions =  np.zeros(n_sub)
+    recalls =  np.zeros(n_sub)
+    aps =  np.zeros(n_sub)
+    f1scores =  np.zeros(n_sub)        
+
+    data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
+    labels = labels.reshape((n_sub * n_ex_sub))
+    groups = [i for i in range(n_sub) for j in range(n_ex_sub)]
+
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)    
-        
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2, random_state = 123)
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
-        sample_weights = class_weight.compute_sample_weight('balanced', y_train)
-
+        
+        # channel-wise feature standarization
         sc = EEGChannelScaler()
         X_train = sc.fit_transform(X_train)
         X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
-        
+
         model = BN3()
         print(model.summary())
-        model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
-        es = EarlyStopping(monitor = 'val_loss', mode = 'min', patience = 50)
+        model.compile(optimizer = 'adam', loss = 'binary_crossentropy')
         
-        model.fit(X_train,
-                  y_train,
-                  batch_size = 32,
-                  sample_weight = sample_weights,
-                  epochs = 200,
-                  validation_data = (X_valid, y_valid),
-                  callbacks = [es])
-
+        # Early stopping setting also follows EEGNet (Lawhern et al., 2018)
+        es = EarlyStopping(monitor = 'val_loss', mode = 'min', patience = 50, restore_best_weights = True)
+        history = model.fit(X_train,
+                            y_train,
+                            batch_size = 256,
+                            epochs = 200,
+                            validation_data = (X_valid, y_valid),
+                            callbacks = [es])
         model.save(modelpath + '/s' + str(k) + '.h5')
+        with open(modelpath + '/s' + str(k) + '.history', 'wb') as fh:
+            pickle.dump(history.history, fh)
+        
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test)
         accuracies[k] = accuracy_score(y_test, proba_test.round())
@@ -86,7 +94,7 @@ def main():
     try:
         parser = argparse.ArgumentParser()
         parser = argparse.ArgumentParser(
-            description="Evaluates single-trial cross_subject P300 detection using cross-validation")
+            description="Evaluates single-trial cross_subject P300 detection")
         parser.add_argument("datapath", type=str,
                             help="Path for the data of the P300 Speller Database (NumPy file)")
         parser.add_argument("labelspath", type=str,
@@ -104,4 +112,3 @@ def main():
         
 if __name__ == "__main__":
     main()
-
