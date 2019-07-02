@@ -34,10 +34,11 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     recalls =  np.zeros(22)
     aps =  np.zeros(22)
     f1scores =  np.zeros(22)
+
     
-    data = data.reshape((22 * 2880, 206, data.shape[3]))
-    labels = labels.reshape((22 * 2880))
-    groups = [i for i in range(22) for j in range(2880)]
+    data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
+    labels = labels.reshape((n_sub * n_ex_sub))
+    groups = [i for i in range(n_sub) for j in range(n_ex_sub)]
 
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
@@ -46,6 +47,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
 
+        # channel-wise feature standarization
         sc = EEGChannelScaler()
         X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
         X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
@@ -91,7 +93,7 @@ def main():
     try:
         parser = argparse.ArgumentParser()
         parser = argparse.ArgumentParser(
-            description="Evaluates single-trial cross_subject P300 detection using cross-validation")
+            description="Evaluates single-trial cross-subject P300 detection using cross-validation")
         parser.add_argument("datapath", type=str,
                             help="Path for the data of the P300 Speller Database (NumPy file)")
         parser.add_argument("labelspath", type=str,
