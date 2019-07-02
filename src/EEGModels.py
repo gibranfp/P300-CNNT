@@ -3,10 +3,17 @@
  Signal Processing and Classification, using Keras and Tensorflow
 
  Requirements:
-    (1) Tensorflow == 1.9.0
+    (1) tensorflow-gpu == 1.12.0
     (2) 'image_data_format' = 'channels_first' in keras.json config
     (3) Data shape = (trials, kernels, channels, samples), which for the 
-        input layer, will be (trials, 1, channels, samples). 
+        input layer, will be (trials, 1, channels, samples).
+ 
+ To run the EEG/MEG ERP classification sample script, you will also need
+
+    (4) mne >= 0.17.1
+    (5) PyRiemann >= 0.2.5
+    (6) scikit-learn >= 0.20.1
+    (7) matplotlib >= 2.2.3
     
  To use:
     
@@ -49,8 +56,8 @@ from tensorflow.keras import backend as K
 
 
 def EEGNet(nb_classes, Chans = 64, Samples = 128, 
-             dropoutRate = 0.25, kernLength = 128, F1 = 4, 
-             D = 2, F2 = 8, norm_rate = 0.25, dropoutType = 'Dropout'):
+             dropoutRate = 0.5, kernLength = 64, F1 = 8, 
+             D = 2, F2 = 16, norm_rate = 0.25, dropoutType = 'Dropout'):
     """ Keras Implementation of EEGNet
     http://iopscience.iop.org/article/10.1088/1741-2552/aace8c/meta
 
@@ -84,11 +91,10 @@ def EEGNet(nb_classes, Chans = 64, Samples = 128,
     kernel lengths for double the sampling rate, etc). Note that we haven't 
     tested the model performance with this rule so this may not work well. 
     
-    The model with default parameters gives the EEGNet-4,2 model as discussed
-    in the paper. This model should do pretty well in general, although as the
-    paper discussed the EEGNet-8,2 (with 8 temporal kernels and 2 spatial
-    filters per temporal kernel) can do slightly better on the SMR dataset.
-    Other variations that we found to work well are EEGNet-4,1 and EEGNet-8,1.
+    The model with default parameters gives the EEGNet-8,2 model as discussed
+    in the paper. This model should do pretty well in general, although it is
+	advised to do some model searching to get optimal performance on your
+	particular dataset.
 
     We set F2 = F1 * D (number of input filters = number of output filters) for
     the SeparableConv2D layer. We haven't extensively tested other values of this
@@ -106,7 +112,7 @@ def EEGNet(nb_classes, Chans = 64, Samples = 128,
                         since the data was high-passed at 4Hz we used a kernel
                         length of 32.     
       F1, F2          : number of temporal filters (F1) and number of pointwise
-                        filters (F2) to learn. Default: F1 = 4, F2 = F1 * D. 
+                        filters (F2) to learn. Default: F1 = 8, F2 = F1 * D. 
       D               : number of spatial filters to learn within each temporal
                         convolution. Default: D = 2
       dropoutType     : Either SpatialDropout2D or Dropout, passed as a string.
@@ -144,12 +150,14 @@ def EEGNet(nb_classes, Chans = 64, Samples = 128,
     block2       = dropoutType(dropoutRate)(block2)
         
     flatten      = Flatten(name = 'flatten')(block2)
-
+    
     dense        = Dense(nb_classes, name = 'dense', 
                          kernel_constraint = max_norm(norm_rate))(flatten)
     softmax      = Activation('softmax', name = 'softmax')(dense)
     
     return Model(inputs=input1, outputs=softmax)
+
+
 
 
 def EEGNet_SSVEP(nb_classes = 12, Chans = 8, Samples = 256, 
