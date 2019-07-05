@@ -42,8 +42,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)    
-        
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, shuffle = True, random_state=123)    
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
 
         # channel-wise feature standarization

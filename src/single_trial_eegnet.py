@@ -6,87 +6,85 @@
 # 2018
 #
 """
-Script to evaluate the P300-CNNT architecture for single-trial subject-dependent P300 detection using cross-validation
+Script to evaluate the EEGNet architecture (Lawhern et al., 2018) for single-trial subject-dependent P300 detection 
 """
 import argparse
 import sys
 import numpy as np
-from tensorflow.keras.metrics import binary_accuracy
-from tensorflow.keras.layers import concatenate
-from sklearn.utils import resample, class_weight
+from BN3model import BN3
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
 from EEGModels import EEGNet
 from utils import *
+import pickle
 
 def evaluate_subject_models(data, labels, modelpath):
     """
-    Trains and evaluates subject-dependent models using random cross validation.
+    Trains and evaluates EEgNet for each subject in the P300 Speller database
+    using repeated stratified K-fold cross validation.
     """
-    cv = StratifiedShuffleSplit(n_splits = 10, test_size = 0.2, random_state = 0)
+    n_sub = data.shape[0]
+    n_ex_sub = data.shape[1]
+    n_samples = data.shape[2]
+    n_channels = data.shape[3]
     for i in range(data.shape[0]):
-        aucs = np.zeros(10)
-        accuracies = np.zeros(10)
-        precisions =  np.zeros(10)
-        recalls =  np.zeros(10)
-        aps =  np.zeros(10)
-        f1scores =  np.zeros(10)
+        aucs = np.zeros(10 * 10)
+        accuracies = np.zeros(10 * 10)
+        precisions = np.zeros(10 * 10)
+        recalls = np.zeros(10 * 10)
+        aps = np.zeros(10 * 10)
+        f1scores = np.zeros(10 * 10)
+
         print("Training for subject {0}: ".format(i))
+        cv = RepeatedStratifiedKFold(n_splits = 5, n_repeats = 10, random_state = 123)
         for k, (t, v) in enumerate(cv.split(data[i], labels[i])):
-            X_train, y_train, X_valid, y_valid = data[i, t], labels[i, t], data[i, v], labels[i, v]
-            sample_weights = class_weight.compute_sample_weight('balanced', y_train)
-                        
-            pos_valid_idx = np.where(y_valid == 1)[0]
-            neg_valid_idx = np.where(y_valid == 0)[0]
-            usample_neg_valid_idx = np.random.choice(neg_valid_idx, len(pos_valid_idx), replace = False)
-            usample_idx = np.concatenate([pos_valid_idx, usample_neg_valid_idx])
-            X_valid = X_valid[usample_idx]
-            y_valid = y_valid[usample_idx]
+            X_train, y_train, X_test, y_test = data[i, t, :, :], labels[i, t], data[i, v, :, :], labels[i, v]
+            X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2, shuffle = True, random_state = 456)
+            print('Partition {0}: X_train = {1}, X_valid = {2}, X_test = {3}'.format(k, X_train.shape, X_valid.shape, X_test.shape))
 
-            # one hot encoding
-            y_onehot_train = np.zeros((y_train.size, 2))
-            y_onehot_valid = np.zeros((y_valid.size, 2))
-            y_onehot_train[np.arange(y_train.size), y_train.astype(int)] = 1
-            y_onehot_valid[np.arange(y_valid.size), y_valid.astype(int)] = 1
-            
+            # channel-wise feature standarization
             sc = EEGChannelScaler()
-            X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2,3)
+            X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
             X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
-
-            print('Partition {0}: X_train = {1}, X_valid = {2}'.format(k, X_train.shape, X_valid.shape))
+            X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
 
             model = EEGNet(2, Chans = 6, Samples = 206)
             print(model.summary())
-            
             model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
-                        
-            model.fit(X_train,
-                      y_onehot_train,
-                      batch_size = 32,
-                      sample_weight = sample_weights,
-                      epochs = 50,
-                      validation_data = (X_valid, y_onehot_valid))
+
+            # Early stopping setting also follows EEGNet (Lawhern et al., 2018)
+            es = EarlyStopping(monitor = 'val_loss', mode = 'min', patience = 50, restore_best_weights = True)
+            history = model.fit(X_train,
+                                to_categorical(y_train),
+                                batch_size = 256,
+                                epochs = 200,
+                                validation_data = (X_valid, to_categorical(y_valid)),
+                                callbacks = [es])
 
             model.save(modelpath + '/s' + str(i) + 'p' + str(k) + '.h5')
-            proba_valid = model.predict(X_valid)
-            aucs[k] = roc_auc_score(y_onehot_valid, proba_valid)
-            accuracies[k] = accuracy_score(y_onehot_valid, np.round(proba_valid))
-            precisions[k] = precision_score(y_onehot_valid, np.round(proba_valid), average='weighted')
-            recalls[k] = recall_score(y_onehot_valid, np.round(proba_valid),average='weighted')
-            aps[k] = average_precision_score(y_onehot_valid, proba_valid)
-            f1scores[k] = f1_score(y_onehot_valid, np.round(proba_valid),average='weighted')
-            print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
-                                                                   accuracies[k],
-                                                                   precisions[k],
-                                                                   recalls[k],
-                                                                   aps[k],
-                                                                   f1scores[k]))
+            with open(modelpath + '/s' + str(k) + '.history', 'wb') as fh:
+                pickle.dump(history.history, fh)
 
-        np.savetxt(modelpath + '/aucs_s' + str(i) + '.npy', aucs)
-        np.savetxt(modelpath + '/accuracies_s' + str(i) + '.npy', accuracies)
-        np.savetxt(modelpath + '/precisions' + str(i) + '.npy', precisions)
-        np.savetxt(modelpath + '/recalls' + str(i) + '.npy', recalls)
-        np.savetxt(modelpath + '/aps' + str(i) + '.npy', aps)
-        np.savetxt(modelpath + '/f1scores' + str(i) + '.npy', f1scores)
+            proba_test = model.predict(X_test)
+            aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
+            accuracies[k] = accuracy_score(y_test, proba_test[:, 1].round())
+            precisions[k] = precision_score(y_test, proba_test[:, 1].round())
+            recalls[k] = recall_score(y_test, proba_test[:, 1].round())
+            aps[k] = average_precision_score(y_test, proba_test[:, 1])
+            f1scores[k] = f1_score(y_test, proba_test[:, 1].round())
+            print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
+                                                                               accuracies[k],
+                                                                               precisions[k],
+                                                                               recalls[k],
+                                                                               aps[k],
+                                                                               f1scores[k]))
+        np.savetxt(modelpath + '/s' + str(i) + '_aucs.npy', aucs)
+        np.savetxt(modelpath + '/s' + str(i) + '_accuracies.npy', accuracies)
+        np.savetxt(modelpath + '/s' + str(i) + '_precisions.npy', precisions)
+        np.savetxt(modelpath  + '/s' + str(i) + '_recalls.npy', recalls)
+        np.savetxt(modelpath  + '/s' + str(i) + '_aps.npy', aps)
+        np.savetxt(modelpath  + '/s' + str(i) + '_f1scores.npy', f1scores)
             
 def main():
     """

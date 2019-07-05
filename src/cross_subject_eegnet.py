@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_
 from EEGModels import EEGNet
 from utils import *
 
-def evaluate_cross_subject_model(data, labels, modelpath):
+def evaluate_cross_subject_model(data, labels, modelpath, train_size = None):
     """
     Trains and evaluates EEGNet for each subject in the P300 Speller database
     using random cross validation.
@@ -35,7 +35,6 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     aps =  np.zeros(22)
     f1scores =  np.zeros(22)
 
-    
     data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
     labels = labels.reshape((n_sub * n_ex_sub))
     groups = [i for i in range(n_sub) for j in range(n_ex_sub)]
@@ -43,9 +42,14 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)            
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123, shuffle = True)
+
+        if train_size:
+            X_train = X_train[:train_size, :, :]
+            y_train = y_train[:train_size]
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
 
+            
         # channel-wise feature standarization
         sc = EEGChannelScaler()
         X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
@@ -100,10 +104,12 @@ def main():
                             help="Path for the labels of the P300 Speller Database (NumPy file)")
         parser.add_argument("modelpath", type=str,
                             help="Path of the directory where the models are to be saved")
+        parser.add_argument("--train_size", type=int, default=None,
+                            help="Path of the directory where the models are to be saved")
         args = parser.parse_args()
         
         data, labels = load_db(args.datapath, args.labelspath)
-        evaluate_cross_subject_model(data, labels, args.modelpath)
+        evaluate_cross_subject_model(data, labels, args.modelpath, train_size = args.train_size)
         
     except SystemExit:
         print('for help use --help')
