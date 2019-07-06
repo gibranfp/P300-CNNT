@@ -3,7 +3,7 @@
 #
 # Gibran Fuentes-Pineda <gibranfp@unam.mx>
 # IIMAS, UNAM
-# 2018
+# 2019
 #
 """
 Script to evaluate the P300-CNNT architecture for single-trial subject-dependent P300 detection using cross-validation
@@ -27,13 +27,7 @@ def evaluate_subject_models(data, labels, modelpath):
     n_samples = data.shape[2]
     n_channels = data.shape[3]
     for i in range(data.shape[0]):
-        aucs = np.zeros(10 * 10)
-        accuracies = np.zeros(10 * 10)
-        precisions = np.zeros(10 * 10)
-        recalls = np.zeros(10 * 10)
-        aps = np.zeros(10 * 10)
-        f1scores = np.zeros(10 * 10)
-
+        aucs = np.zeros(5 * 10)
         print("Training for subject {0}: ".format(i))
         cv = RepeatedStratifiedKFold(n_splits = 5, n_repeats = 10, random_state = 123)
         for k, (t, v) in enumerate(cv.split(data[i], labels[i])):
@@ -60,30 +54,11 @@ def evaluate_subject_models(data, labels, modelpath):
                                 validation_data = (X_valid, y_valid),
                                 callbacks = [es])
 
-            model.save(modelpath + '/s' + str(i) + 'p' + str(k) + '.h5')
-            with open(modelpath + '/s' + str(k) + '.history', 'wb') as fh:
-                pickle.dump(history.history, fh)
-
             proba_test = model.predict(X_test)
             aucs[k] = roc_auc_score(y_test, proba_test)
-            accuracies[k] = accuracy_score(y_test, proba_test.round())
-            precisions[k] = precision_score(y_test, proba_test.round())
-            recalls[k] = recall_score(y_test, proba_test.round())
-            aps[k] = average_precision_score(y_test, proba_test)
-            f1scores[k] = f1_score(y_test, proba_test.round())
-            print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
-                                                                               accuracies[k],
-                                                                               precisions[k],
-                                                                               recalls[k],
-                                                                               aps[k],
-                                                                               f1scores[k]))
+            print('AUC: {0}'.format(aucs[k]))
 
         np.savetxt(modelpath + '/s' + str(i) + '_aucs.npy', aucs)
-        np.savetxt(modelpath + '/s' + str(i) + '_accuracies.npy', accuracies)
-        np.savetxt(modelpath + '/s' + str(i) + '_precisions.npy', precisions)
-        np.savetxt(modelpath  + '/s' + str(i) + '_recalls.npy', recalls)
-        np.savetxt(modelpath  + '/s' + str(i) + '_aps.npy', aps)
-        np.savetxt(modelpath  + '/s' + str(i) + '_f1scores.npy', f1scores)
             
 def main():
     """
