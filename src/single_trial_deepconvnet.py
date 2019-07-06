@@ -3,7 +3,7 @@
 #
 # Gibran Fuentes-Pineda <gibranfp@unam.mx>
 # IIMAS, UNAM
-# 2018
+# 2019
 #
 """
 Script to evaluate the P300-CNNT architecture for single-trial subject-dependent P300 detection using cross-validation
@@ -25,11 +25,6 @@ def evaluate_subject_models(data, labels, modelpath):
     cv = StratifiedShuffleSplit(n_splits = 10, test_size = 0.2, random_state = 0)
     for i in range(data.shape[0]):
         aucs = np.zeros(10)
-        accuracies = np.zeros(10)
-        precisions =  np.zeros(10)
-        recalls =  np.zeros(10)
-        aps =  np.zeros(10)
-        f1scores =  np.zeros(10)
         print("Training for subject {0}: ".format(i))
         for k, (t, v) in enumerate(cv.split(data[i], labels[i])):
             X_train, y_train, X_valid, y_valid = data[i, t], labels[i, t], data[i, v], labels[i, v]
