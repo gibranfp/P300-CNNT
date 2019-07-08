@@ -20,4 +20,4 @@ python3 src/single_trial_FCNN.py data/data6_osv.npy data/labels6_osv.npy models/
 python3 src/single_trial_FCNN.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/FCNN/ --subject 19
 python3 src/single_trial_FCNN.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/FCNN/ --subject 20
 python3 src/single_trial_FCNN.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/FCNN/ --subject 21
-python3 src/single_trial_FCNN.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/FCNN/ --subject 22
+
