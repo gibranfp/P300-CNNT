@@ -20,4 +20,3 @@ python3 src/single_trial_ShallowConvNet.py data/data6_osv.npy data/labels6_osv.n
 python3 src/single_trial_ShallowConvNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/ShallowConvNet/ --subject 19
 python3 src/single_trial_ShallowConvNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/ShallowConvNet/ --subject 20
 python3 src/single_trial_ShallowConvNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/ShallowConvNet/ --subject 21
-python3 src/single_trial_ShallowConvNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/ShallowConvNet/ --subject 22
