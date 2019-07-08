@@ -11,15 +11,13 @@ Script to evaluate the ShallowConvNet architecture (Lawhern et al., 2018) for si
 import argparse
 import sys
 import numpy as np
-from BN3model import BN3
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
 from EEGModels import ShallowConvNet
 from utils import *
-import pickle
 
-def evaluate_subject_models(data, labels, modelpath):
+def evaluate_subject_models(data, labels, modelpath, subject):
     """
     Trains and evaluates ShallowConvNet for each subject in the P300 Speller database
     using repeated stratified K-fold cross validation.
@@ -28,39 +26,38 @@ def evaluate_subject_models(data, labels, modelpath):
     n_ex_sub = data.shape[1]
     n_samples = data.shape[2]
     n_channels = data.shape[3]
-    for i in range(data.shape[0]):
-        aucs = np.zeros(5 * 10)
-        print("Training for subject {0}: ".format(i))
-        cv = RepeatedStratifiedKFold(n_splits = 5, n_repeats = 10, random_state = 123)
-        for k, (t, v) in enumerate(cv.split(data[i], labels[i])):
-            X_train, y_train, X_test, y_test = data[i, t, :, :], labels[i, t], data[i, v, :, :], labels[i, v]
-            X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2, shuffle = True, random_state = 456)
-            print('Partition {0}: X_train = {1}, X_valid = {2}, X_test = {3}'.format(k, X_train.shape, X_valid.shape, X_test.shape))
+    aucs = np.zeros(5 * 10)
+    print("Training for subject {0}: ".format(subject))
+    cv = RepeatedStratifiedKFold(n_splits = 5, n_repeats = 10, random_state = 123)
+    for k, (t, v) in enumerate(cv.split(data[subject], labels[subject])):
+        X_train, y_train, X_test, y_test = data[subject, t, :, :], labels[subject, t], data[subject, v, :, :], labels[subject, v]
+        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2, shuffle = True, random_state = 456)
+        print('Partition {0}: X_train = {1}, X_valid = {2}, X_test = {3}'.format(k, X_train.shape, X_valid.shape, X_test.shape))
 
-            # channel-wise feature standarization
-            sc = EEGChannelScaler()
-            X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
-            X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
-            X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
+        # channel-wise feature standarization
+        sc = EEGChannelScaler()
+        X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
+        X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
+        X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
+        
+        model = ShallowConvNet(2, Chans = 6, Samples = 206)
+        print(model.summary())
+        model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
 
-            model = ShallowConvNet(2, Chans = 6, Samples = 206)
-            print(model.summary())
-            model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
-
-            # Early stopping setting also follows EEGNet (Lawhern et al., 2018)
-            es = EarlyStopping(monitor = 'val_loss', mode = 'min', patience = 50, restore_best_weights = True)
-            history = model.fit(X_train,
-                                to_categorical(y_train),
-                                batch_size = 256,
-                                epochs = 200,
-                                validation_data = (X_valid, to_categorical(y_valid)),
-                                callbacks = [es])
-
-            proba_test = model.predict(X_test)
-            aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
-            print('AUC: {0}'.format(aucs[k]))
+        # Early stopping setting also follows EEGNet (Lawhern et al., 2018)
+        es = EarlyStopping(monitor = 'val_loss', mode = 'min', patience = 50, restore_best_weights = True)
+        history = model.fit(X_train,
+                            to_categorical(y_train),
+                            batch_size = 256,
+                            epochs = 200,
+                            validation_data = (X_valid, to_categorical(y_valid)),
+                            callbacks = [es])
+        
+        proba_test = model.predict(X_test)
+        aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
+        print('S{0}, P{1} -- AUC: {2}'.format(subject, k, aucs[k]))
                                                                                
-        np.savetxt(modelpath + '/s' + str(i) + '_aucs.npy', aucs)
+    np.savetxt(modelpath + '/s' + str(subject) + '_aucs.npy', aucs)
             
 def main():
     """
@@ -76,12 +73,16 @@ def main():
                             help="Path for the labels of the P300 Speller Database (NumPy file)")
         parser.add_argument("modelpath", type=str,
                             help="Path of the directory where the models are to be saved")
+        parser.add_argument("--subject", type=int,
+                            help="Subject to evaluate")
+
         args = parser.parse_args()
+
+        np.random.seed(1)
         
-        np.random.seed(0)
         data, labels = load_db(args.datapath, args.labelspath)
-        evaluate_subject_models(data, labels, args.modelpath)
-        
+        evaluate_subject_models(data, labels, args.modelpath, args.subject)
+                
     except SystemExit:
         print('for help use --help')
         sys.exit(2)
