@@ -20,4 +20,3 @@ python3 src/single_trial_BN3.py data/data6_osv.npy data/labels6_osv.npy models/w
 python3 src/single_trial_BN3.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/BN3/ --subject 19
 python3 src/single_trial_BN3.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/BN3/ --subject 20
 python3 src/single_trial_BN3.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/BN3/ --subject 21
-python3 src/single_trial_BN3.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/BN3/ --subject 22

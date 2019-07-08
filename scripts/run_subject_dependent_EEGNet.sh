@@ -20,4 +20,3 @@ python3 src/single_trial_EEGNet.py data/data6_osv.npy data/labels6_osv.npy model
 python3 src/single_trial_EEGNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/EEGNet/ --subject 19
 python3 src/single_trial_EEGNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/EEGNet/ --subject 20
 python3 src/single_trial_EEGNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/EEGNet/ --subject 21
-python3 src/single_trial_EEGNet.py data/data6_osv.npy data/labels6_osv.npy models/within_subject/EEGNet/ --subject 22
