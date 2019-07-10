@@ -14,27 +14,29 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
 
-def CNNR(Chans = 6, Samples = 206)
-    
-    input1   = Input(shape = (Chans, Samples))
+def streg(a):
+    return 0.01 * K.sum(K.square(a[:, 1:, :] - a[:, :-1, :]))
 
-    ##################################################################
-    block1       = Conv2D(96,(1,Samples), padding = 'same')(input1)
+def CNNR(Chans = 6, Samples = 206):
+    eeg_input   = Input(shape = (Samples, Chans))
+
+    block1       = Conv1D(96, 1, padding = 'valid', activity_regularizer = streg, use_bias = True)(eeg_input)
     block1       = Activation('relu')(block1)
-    block1       = MaxPooling2D((3,1), strides = 2)(block1)
+    block1       = MaxPooling1D(3, strides = 2)(block1)
     
-    block1       = Conv2D(128,?, padding = 'same', use_bias = False)(block1)
-    block1       = Activation('relu')(block1)
-    block1       = MaxPooling2D(3, strides = 2)(block1)
+    block2       = Conv1D(128, 6, padding = 'valid', use_bias = True)(block1)
+    block2       = Activation('relu')(block2)
+    block2       = MaxPooling1D(3, strides = 2)(block2)
     
-    block1       = Conv2D(128, ?, padding = 'same', use_bias = False)(block1)
-    block1       = Activation('relu')(block1)    
+    block3       = Conv1D(128, 6, padding = 'valid', use_bias = True)(block2)
+    block3       = Activation('relu')(block3)   
     
-    flatten      = Flatten(name = 'flatten')(block1)
-    dense        = Dense(2048,input_dim=?, activation = 'relu')(flatten)
-    block1       = Dropout(0.5)(dense)
-    dense        = Dense(4096,input_dim=?, activation = 'relu')(block1)
-    block1       = Dropout(0.5)(dense)
-    prediction   = Dense(2,activation = 'softmax')(block1)
-    
-    return Model(inputs=input1, outputs=prediction, name='CNNR')
+    flatten      = Flatten(name = 'flatten')(block3)
+    dense1       = Dense(2048, activation = 'relu')(flatten)
+    dense1       = Dropout(0.8)(dense1)
+    dense2       = Dense(4096, activation = 'relu')(dense1)
+    dense2       = Dropout(0.8)(dense2)
+    output       = Dense(2)(dense2)
+    softmax      = Activation('softmax', name = 'softmax')(output)
+        
+    return Model(inputs = eeg_input, outputs = softmax, name = 'CNNR')
