@@ -14,11 +14,10 @@ import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
-from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from EEGModels import EEGNet
 from utils import *
 
-def evaluate_cross_subject_model(data, labels, modelpath, train_size = None):
+def evaluate_cross_subject_model(data, labels, modelpath):
     """
     Trains and evaluates EEGNet for each subject in the P300 Speller database
     using random cross validation.
@@ -37,18 +36,20 @@ def evaluate_cross_subject_model(data, labels, modelpath, train_size = None):
 
     data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
     labels = labels.reshape((n_sub * n_ex_sub))
-    groups = [i for i in range(n_sub) for j in range(n_ex_sub)]
+    groups = np.array([i for i in range(n_sub) for j in range(n_ex_sub)])
 
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123, shuffle = True)
 
-        if train_size:
-            X_train = X_train[:train_size, :, :]
-            y_train = y_train[:train_size]
+        rg = np.random.choice(t, 1)
+        sv = groups[t] == groups[rg]
+        st = np.logical_not(sv)
+        X_train, y_train, X_valid, y_valid = data[t][st], labels[t][st], data[t][sv], labels[t][sv]
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
-
+        print("Groups train = {0}, valid = {1}, test = {2}".format(np.unique(groups[t][st]),
+                                                                   np.unique(groups[t][sv]),
+                                                                   np.unique(groups[v])))
             
         # channel-wise feature standarization
         sc = EEGChannelScaler()
@@ -68,27 +69,11 @@ def evaluate_cross_subject_model(data, labels, modelpath, train_size = None):
                   validation_data = (X_valid, to_categorical(y_valid)),
                   callbacks = [es])
 
-        model.save(modelpath + '/s' + str(k) + '.h5')
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
-        accuracies[k] = accuracy_score(y_test, proba_test[:, 1].round())
-        precisions[k] = precision_score(y_test, proba_test[:, 1].round())
-        recalls[k] = recall_score(y_test, proba_test[:, 1].round())
-        aps[k] = average_precision_score(y_test, proba_test[:, 1])
-        f1scores[k] = f1_score(y_test, proba_test[:, 1].round())
-        print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
-                                                                           accuracies[k],
-                                                                           precisions[k],
-                                                                           recalls[k],
-                                                                           aps[k],
-                                                                           f1scores[k]))
+        print('P{0} -- AUC: {1}'.format(k, aucs[k]))
         
     np.savetxt(modelpath + '/aucs.npy', aucs)
-    np.savetxt(modelpath + '/accuracies.npy', accuracies)
-    np.savetxt(modelpath + '/precisions.npy', precisions)
-    np.savetxt(modelpath + '/recalls.npy', recalls)
-    np.savetxt(modelpath + '/aps.npy', aps)
-    np.savetxt(modelpath + '/f1scores.npy', f1scores)
 
 def main():
     """
@@ -104,12 +89,12 @@ def main():
                             help="Path for the labels of the P300 Speller Database (NumPy file)")
         parser.add_argument("modelpath", type=str,
                             help="Path of the directory where the models are to be saved")
-        parser.add_argument("--train_size", type=int, default=None,
-                            help="Path of the directory where the models are to be saved")
         args = parser.parse_args()
+
+        np.random.seed(1)
         
         data, labels = load_db(args.datapath, args.labelspath)
-        evaluate_cross_subject_model(data, labels, args.modelpath, train_size = args.train_size)
+        evaluate_cross_subject_model(data, labels, args.modelpath)
         
     except SystemExit:
         print('for help use --help')
