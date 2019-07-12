@@ -63,7 +63,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                             validation_data = (X_valid, y_valid),                                         
                             callbacks = [es])                                                             
                                                                                                           
-        proba_test = model.predict(X_test)                                                                
+        proba_test = model.predict(X_test)                                                               
         aucs[k] = roc_auc_score(y_test, proba_test)                                                       
         print('P{0} -- AUC: {1}'.format(k, aucs[k]))
                                                                                                           
