@@ -27,11 +27,6 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     n_channels = data.shape[3]
     
     aucs = np.zeros(n_sub)
-    accuracies = np.zeros(n_sub)
-    precisions =  np.zeros(n_sub)
-    recalls =  np.zeros(n_sub)
-    aps =  np.zeros(n_sub)
-    f1scores =  np.zeros(n_sub)        
 
     data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
     labels = labels.reshape((n_sub * n_ex_sub))
