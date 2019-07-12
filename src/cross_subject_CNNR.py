@@ -6,7 +6,7 @@
 # 2019
 #
 """
-Script to evaluate the ShallowConvNet architecture for single-trial cross-subject P300 detection
+Script to evaluate the CNNR architecture for single-trial cross-subject P300 detection
 """
 import argparse
 import sys
@@ -14,12 +14,13 @@ import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
-from EEGModels import ShallowConvNet
+from CNNR import CNNR
 from utils import *
+import tensorflow.keras.backend as K
 
 def evaluate_cross_subject_model(data, labels, modelpath):
     """
-    Trains and evaluates ShallowConvNet for each subject in the P300 Speller database
+    Trains and evaluates CNNR for each subject in the P300 Speller database
     using random cross validation.
     """
     n_sub = data.shape[0]
@@ -48,11 +49,11 @@ def evaluate_cross_subject_model(data, labels, modelpath):
             
         # channel-wise feature standarization
         sc = EEGChannelScaler()
-        X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
-        X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
-        X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
+        X_train = sc.fit_transform(X_train)
+        X_valid = sc.transform(X_valid)
+        X_test = sc.transform(X_test)
         
-        model = ShallowConvNet(2, dropoutRate = 0.25, Chans = 6, Samples = 206)
+        model = CNNR()
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
 
@@ -67,7 +68,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
         print('P{0} -- AUC: {1}'.format(k, aucs[k]))
-        
+        K.clear_session()
     np.savetxt(modelpath + '/aucs.npy', aucs)
 
 def main():
