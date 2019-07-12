@@ -3,46 +3,28 @@
 #
 # Gibran Fuentes-Pineda <gibranfp@unam.mx>
 # IIMAS, UNAM
-# 2018
+# 2019
 #
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
-from tensorflow.keras import backend as K
+from tensorflow.keras.regularizers import l2
 
-def create_base_network():
-  eeg_input = Input(shape=(206,1))
+def P300_CNNT(Chans = 6, Samples = 206):
+  eeg_input    = Input(shape = (Samples, Chans))
 
-  x = Conv1D(64, 16, padding = 'same')(eeg_input)
-  x = BatchNormalization()(x)
-  x = Activation('relu')(x)
-  x = MaxPooling1D(2, strides = 2)(x)
-  x = Dropout(0.5)(x)
-  x = Conv1D(128, 16, padding = 'same')(x)
-  x = BatchNormalization()(x)
-  x = Activation('relu')(x)
-  x = MaxPooling1D(2, strides = 2)(x)
-  x = Dropout(0.5)(x)
-  x = Flatten()(x)
+  padded       = ZeroPadding1D(padding = 4)(eeg_input)
+  block1       = SeparableConv1D(8, 16, strides = 8,
+                                 padding = 'valid',
+                                 data_format = 'channels_last',
+                                 kernel_initializer = 'glorot_uniform',
+                                 bias_initializer = 'zeros',
+                                 use_bias = True)(padded)
+  block1       = Activation('tanh')(block1)
+  flatten      = Flatten(name = 'flatten')(block1)
+  prediction   = Dense(1, activation = 'sigmoid')(flatten)
 
-  return Model(eeg_input, x)
-
-def P300_CNNT(activation = 'relu', pad = 'same', n_channels = 6):
-  base_net = create_base_network()
-  data_input = Input(shape=(206, n_channels))
-  branch_outputs = []
-  for c in range(n_channels):
-    branch_in = Lambda(lambda x: K.expand_dims(x[:, :, c], -1))(data_input)
-    out = base_net(branch_in)
-    branch_outputs.append(out)
-    
-  all_ch = Add()(branch_outputs)
-  x = Dense(128, activation = 'relu')(all_ch)
-  x = Dropout(0.5)(x)
-  prediction = Dense(1, activation = 'sigmoid')(all_ch)
-
-  return Model(data_input, prediction, name='p300-cnnt')  
+  return Model(inputs = eeg_input, outputs = prediction, name='SepConv1D')  
