@@ -17,22 +17,15 @@ def compute_mean_auc(aucpath, title):
     """
     Compute mean AUC
     """
-    aucs = np.zeros((22,10))
-    accuracies = np.zeros((22,10))
+    aucs = np.zeros((22,50))
     for i in range(22):
-        aucs[i, :] = np.loadtxt(aucpath + '/aucs_s' + str(i) + '.npy')
-        if os.path.exists(aucpath + '/accuracies_s' + str(i) + '.npy'):
-            accuracies[i, :] = np.loadtxt(aucpath + '/accuracies_s' + str(i) + '.npy')
+        aucs[i, :] = np.loadtxt(aucpath + '/s' + str(i) + '_aucs.npy')
         
     print('---------' + title + '---------')
     print('Average Mean AUC: {0}'.format(aucs.mean()))
     print('std(mean(aucs_per_subject)): {0}'.format(aucs.mean(axis = 1).std()))
     print('std(all_aucs): {0}'.format(aucs.std()))
     print('mean(std(aucs_per_subject)): {0}'.format(aucs.std(axis = 1).mean()))
-    print('Average Mean Accuracy: {0}'.format(accuracies.mean()))
-    print('std(mean(accuracies_per_subject)): {0}'.format(accuracies.mean(axis = 1).std()))
-    print('std(all_accuracies): {0}'.format(accuracies.std()))
-    print('mean(std(accuracies_per_subject)): {0}'.format(accuracies.std(axis = 1).mean()))
 
 def main():
     """
