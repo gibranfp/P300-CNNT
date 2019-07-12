@@ -1,33 +1,48 @@
-from CNN1 import UCNN1, CNN1
+import argparse
+import sys
+from CNN1 import UCNN1, CNN1, CNN3, UCNN3
 from EEGModels import ShallowConvNet, DeepConvNet, EEGNet
 from BN3model import BN3
 from FCNNmodel import FCNN
+from OCLNN import OCLNN
+from CNNR import CNNR
 
+names = {
+    'bn3': (BN3, {}),
+    'shallowconvnet': (ShallowConvNet, {'nb_classes': 2, 'Chans': 6, 'Samples': 206}),
+    'deepconvnet': (DeepConvNet, {'nb_classes': 2, 'Chans': 6, 'Samples': 206}),
+    'eegnet': (EEGNet, {'nb_classes': 2, 'Chans': 6, 'Samples': 206}),
+    'cnn1': (CNN1, {}),
+    'ucnn1': (UCNN1, {}),
+    'cnn3': (CNN3, {}),
+    'ucnn3': (UCNN3, {}),
+    'cnnr': (CNNR, {}),
+    'fcnn': (FCNN, {}),
+    'oclnn': (OCLNN, {})
+}
+
+def main():
+    """
+    Main function
+    """
+    try:
+        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            description="Evaluates single-trial cross-subject P300 detection using cross-validation")
+        parser.add_argument("name", type=str,
+                            help="Name of the architecture")
+        args = parser.parse_args()
+
+        try:
+            model, params = names[args.name.lower()]
+            with open(args.name + '.txt','w') as f:                
+                model(**params).summary(print_fn = lambda s: f.write(s + '\n'))
+        except KeyError:
+            print('Unknown architecture {0}! Choose one of the following: {1}'.format(args.name, names.keys()))
             
-bn3 = BN3()
-with open('BN3.txt','w') as fh:
-    bn3.summary(print_fn = lambda x: fh.write(x + '\n'))
+    except SystemExit:
+        print('for help use --help')
+        sys.exit(2)
         
-cnn1 = CNN1()
-with open('CNN1.txt','w') as fh:
-    cnn1.summary(print_fn = lambda x: fh.write(x + '\n'))
-
-ucnn1 = UCNN1()
-with open('UCNN1.txt','w') as fh:
-    ucnn1.summary(print_fn = lambda x: fh.write(x + '\n'))
-
-scn = ShallowConvNet(2)
-with open('ShallowConvNet.txt','w') as fh:
-    scn.summary(print_fn = lambda x: fh.write(x + '\n'))
-
-dcn = DeepConvNet(2)
-with open('DeepConvNet.txt','w') as fh:
-    dcn.summary(print_fn = lambda x: fh.write(x + '\n'))
-
-egn = EEGNet(2)
-with open('EEGNet.txt','w') as fh:
-    egn.summary(print_fn = lambda x: fh.write(x + '\n'))
-
-fcnn = FCNN()
-with open('FCNN.txt','w') as fh:
-    fcnn.summary(print_fn = lambda x: fh.write(x + '\n'))
+if __name__ == "__main__":
+    main()

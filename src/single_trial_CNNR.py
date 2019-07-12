@@ -16,6 +16,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
 from utils import *
+import tensorflow.keras.backend as K
 
 def evaluate_subject_models(data, labels, modelpath, subject):
     """
@@ -41,7 +42,6 @@ def evaluate_subject_models(data, labels, modelpath, subject):
         X_test = sc.transform(X_test)
 
         model = CNNR(Chans = 6, Samples = 206)
-        print(model.summary())
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
             
         # Early stopping setting also follows EEGNet (Lawhern et al., 2018)
@@ -56,6 +56,7 @@ def evaluate_subject_models(data, labels, modelpath, subject):
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
         print('S{0}, P{1} -- AUC: {2}'.format(subject, k, aucs[k]))
+        K.clear_session()
         
     np.savetxt(modelpath + '/s' + str(subject) + '_aucs.npy', aucs)
             

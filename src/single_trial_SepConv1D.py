@@ -11,7 +11,7 @@ Script to evaluate the P300-CNNT architecture for single-trial subject-dependent
 import argparse
 import sys
 import numpy as np
-from p300_cnnt import P300_CNNT
+from SepConv1D import SepConv1D
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
 from utils import *
@@ -39,7 +39,7 @@ def evaluate_subject_models(data, labels, modelpath, subject):
         X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
 
-        model = P300_CNNT()
+        model = SepConv1D(Chans = n_channels, Samples = n_samples)
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'binary_crossentropy')
             
