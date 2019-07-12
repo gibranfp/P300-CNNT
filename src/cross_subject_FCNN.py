@@ -12,10 +12,7 @@ import argparse
 import sys
 import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
-from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
-from sklearn.utils import resample, class_weight
 from FCNNmodel import FCNN
 from utils import *
 
@@ -30,27 +27,28 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     n_channels = data.shape[3]
 
     aucs = np.zeros(22)
-    accuracies = np.zeros(22)
-    precisions = np.zeros(22)
-    recalls = np.zeros(22)
-    aps = np.zeros(22)
-    f1scores = np.zeros(22)
 
     data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
     labels = labels.reshape((n_sub * n_ex_sub))
-    groups = [i for i in range(n_sub) for j in range(n_ex_sub)]
+    groups = np.array([i for i in range(n_sub) for j in range(n_ex_sub)])
 
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-        X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=123)            
+        rg = np.random.choice(t, 1)
+        sv = groups[t] == groups[rg]
+        st = np.logical_not(sv)
+        X_train, y_train, X_valid, y_valid = data[t][st], labels[t][st], data[t][sv], labels[t][sv]
         print("Partition {0}: train = {1}, valid = {2}, test = {3}".format(k, X_train.shape, X_valid.shape, X_test.shape))
+        print("Groups train = {0}, valid = {1}, test = {2}".format(np.unique(groups[t][st]),
+                                                                   np.unique(groups[t][sv]),
+                                                                   np.unique(groups[v])))
 
-        # channel-wise feature standarization
-        sc = EEGChannelScaler()
-        X_train = np.swapaxes(sc.fit_transform(X_train)[:, np.newaxis, :], 2, 3)
-        X_valid = np.swapaxes(sc.transform(X_valid)[:, np.newaxis, :], 2, 3)
-        X_test = np.swapaxes(sc.transform(X_test)[:, np.newaxis, :], 2, 3)
+         # channel-wise feature standarization                                                             
+        sc = EEGChannelScaler()                                                                           
+        X_train = sc.fit_transform(X_train).reshape(X_train.shape[0], X_train.shape[1] * X_train.shape[2])                                                               
+        X_valid = sc.transform(X_valid).reshape(X_valid.shape[0], X_valid.shape[1] * X_valid.shape[2])                                                                  
+        X_test = sc.transform(X_test).reshape(X_test.shape[0], X_test.shape[1] * X_test.shape[2])                                                                     
         
         model = FCNN()
         print(model.summary())
@@ -64,27 +62,11 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                   validation_data = (X_valid, y_valid),
                   callbacks = [es])
 
-        model.save(modelpath + '/s' + str(k) + '.h5')
         proba_test = model.predict(X_test)
-        aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
-        accuracies[k] = accuracy_score(y_test, proba_test[:, 1].round())
-        precisions[k] = precision_score(y_test, proba_test[:, 1].round())
-        recalls[k] = recall_score(y_test, proba_test[:, 1].round())
-        aps[k] = average_precision_score(y_test, proba_test[:, 1])
-        f1scores[k] = f1_score(y_test, proba_test[:, 1].round())
-        print('AUC: {0} ACC: {1} PRE: {2} REC: {3} AP: {4} F1: {5}'.format(aucs[k],
-                                                                           accuracies[k],
-                                                                           precisions[k],
-                                                                           recalls[k],
-                                                                           aps[k],
-                                                                           f1scores[k]))
+        aucs[k] = roc_auc_score(y_test, proba_test)
+        print('P{0} -- AUC: {1}'.format(k, aucs[k]))
         
     np.savetxt(modelpath + '/aucs.npy', aucs)
-    np.savetxt(modelpath + '/accuracies.npy', accuracies)
-    np.savetxt(modelpath + '/precisions.npy', precisions)
-    np.savetxt(modelpath + '/recalls.npy', recalls)
-    np.savetxt(modelpath + '/aps.npy', aps)
-    np.savetxt(modelpath + '/f1scores.npy', f1scores)
 
 def main():
     """
@@ -101,6 +83,8 @@ def main():
         parser.add_argument("modelpath", type=str,
                             help="Path of the directory where the models are to be saved")
         args = parser.parse_args()
+
+        np.random.seed(1)
         
         data, labels = load_db(args.datapath, args.labelspath)
         evaluate_cross_subject_model(data, labels, args.modelpath)
