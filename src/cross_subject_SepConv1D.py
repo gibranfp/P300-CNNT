@@ -6,19 +6,20 @@
 # 2019
 #
 """
-Script to evaluate a Conv1D (P300-CNNT) architecture for single-trial cross-subject P300 detection
+Script to evaluate a SepConv1D architecture for single-trial cross-subject P300 detection
 """
 import argparse
 import sys
 import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
-from p300_cnnt import P300_CNNT
+from SepConv1D import SepConv1D
 from utils import *
+import tensorflow.keras.backend as K
 
 def evaluate_cross_subject_model(data, labels, modelpath):
     """
-    Trains and evaluates P300-CNNT for each subject in the P300 Speller database
+    Trains and evaluates SepConv1D for each subject in the P300 Speller database
     using random cross validation.
     """
     n_sub = data.shape[0]
@@ -45,12 +46,12 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                                                                    np.unique(groups[v])))
 
          # channel-wise feature standarization                                                             
-        sc = EEGChannelScaler()                                                                           
+        sc = EEGChannelScaler(n_channels = n_channels)                                                                           
         X_train = sc.fit_transform(X_train)                                        
         X_valid = sc.transform(X_valid)                                                           
         X_test = sc.transform(X_test)                                                             
         
-        model = P300_CNNT()
+        model = SepConv1D(Chans = n_channels, Samples = n_samples)
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'binary_crossentropy')
 
@@ -65,6 +66,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test)
         print('P{0} -- AUC: {1}'.format(k, aucs[k]))
+        K.clear_session()
         
     np.savetxt(modelpath + '/aucs.npy', aucs)
 
