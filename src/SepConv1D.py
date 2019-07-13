@@ -13,11 +13,11 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
 
-def SepConv1D(Chans = 6, Samples = 206):
+def SepConv1D(Chans = 6, Samples = 206, Filters = 32):
   eeg_input    = Input(shape = (Samples, Chans))
 
   padded       = ZeroPadding1D(padding = 4)(eeg_input)
-  block1       = SeparableConv1D(32, 16, strides = 8,
+  block1       = SeparableConv1D(Filters, 16, strides = 8,
                                  padding = 'valid',
                                  data_format = 'channels_last',
                                  kernel_initializer = 'glorot_uniform',
