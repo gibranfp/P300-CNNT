@@ -48,12 +48,12 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                                                                    np.unique(groups[v])))
             
         # channel-wise feature standarization
-        sc = EEGChannelScaler()
+        sc = EEGChannelScaler(n_channels = n_channels)
         X_train = sc.fit_transform(X_train)
         X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
         
-        model = CNNR()
+        model = CNNR(Chans = n_channels, Samples = n_samples)
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
 
@@ -69,6 +69,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
         print('P{0} -- AUC: {1}'.format(k, aucs[k]))
         K.clear_session()
+        
     np.savetxt(modelpath + '/aucs.npy', aucs)
 
 def main():

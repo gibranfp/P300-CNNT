@@ -17,7 +17,7 @@ from SepConv1D import SepConv1D
 from utils import *
 import tensorflow.keras.backend as K
 
-def evaluate_cross_subject_model(data, labels, modelpath):
+def evaluate_cross_subject_model(data, labels, modelpath, n_filters = 32):
     """
     Trains and evaluates SepConv1D for each subject in the P300 Speller database
     using random cross validation.
@@ -51,7 +51,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         X_valid = sc.transform(X_valid)                                                           
         X_test = sc.transform(X_test)                                                             
         
-        model = SepConv1D(Chans = n_channels, Samples = n_samples)
+        model = SepConv1D(Chans = n_channels, Samples = n_samples, Filters = n_filters)
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'binary_crossentropy')
 
@@ -84,12 +84,15 @@ def main():
                             help="Path for the labels of the P300 Speller Database (NumPy file)")
         parser.add_argument("modelpath", type=str,
                             help="Path of the directory where the models are to be saved")
+        parser.add_argument("--n_filters", type=int, default = 32,
+                            help="Number of filters to use for SepConv1D")
+
         args = parser.parse_args()
 
         np.random.seed(1)
         
         data, labels = load_db(args.datapath, args.labelspath)
-        evaluate_cross_subject_model(data, labels, args.modelpath)
+        evaluate_cross_subject_model(data, labels, args.modelpath, n_filters = args.n_filters)
         
     except SystemExit:
         print('for help use --help')

@@ -36,12 +36,12 @@ def evaluate_subject_models(data, labels, modelpath, subject):
         print('Partition {0}: X_train = {1}, X_valid = {2}, X_test = {3}'.format(k, X_train.shape, X_valid.shape, X_test.shape))
 
         # channel-wise feature standarization
-        sc = EEGChannelScaler()
+        sc = EEGChannelScaler(n_channels = n_channels)
         X_train = sc.fit_transform(X_train)
         X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
 
-        model = CNNR(Chans = 6, Samples = 206)
+        model = CNNR(Chans = n_channels, Samples = n_samples)
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy')
             
         # Early stopping setting also follows EEGNet (Lawhern et al., 2018)

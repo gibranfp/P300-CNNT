@@ -16,6 +16,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import *
 from utils import *
+import tensorflow.keras.backend as K
 
 def evaluate_subject_models(data, labels, modelpath, subject):
     """
@@ -35,12 +36,12 @@ def evaluate_subject_models(data, labels, modelpath, subject):
         print('Partition {0}: X_train = {1}, X_valid = {2}, X_test = {3}'.format(k, X_train.shape, X_valid.shape, X_test.shape))
 
         # channel-wise feature standarization
-        sc = EEGChannelScaler()
+        sc = EEGChannelScaler(n_channels = n_channels)
         X_train = sc.fit_transform(X_train)
         X_valid = sc.transform(X_valid)
         X_test = sc.transform(X_test)
 
-        model = CNN3(Chans = 6, Samples = 206)
+        model = CNN3(Chans = n_channels, Samples = n_samples)
         print(model.summary())
         model.compile(optimizer = 'adam', loss = 'mean_squared_error')
             
@@ -56,6 +57,7 @@ def evaluate_subject_models(data, labels, modelpath, subject):
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test[:, 1])
         print('S{0}, P{1} -- AUC: {2}'.format(subject, k, aucs[k]))
+        K.clear_session()
         
     np.savetxt(modelpath + '/s' + str(subject) + '_aucs.npy', aucs)
             
