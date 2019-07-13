@@ -6,6 +6,7 @@ from BN3model import BN3
 from FCNNmodel import FCNN
 from OCLNN import OCLNN
 from CNNR import CNNR
+from SepConv1D import SepConv1D
 
 names = {
     'bn3': (BN3, {}),
@@ -18,7 +19,10 @@ names = {
     'ucnn3': (UCNN3, {}),
     'cnnr': (CNNR, {}),
     'fcnn': (FCNN, {}),
-    'oclnn': (OCLNN, {})
+    'oclnn': (OCLNN, {}),
+    'sepconv1d32': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 32}),
+    'sepconv1d16': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 16}),
+    'sepconv1d8': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 8})
 }
 
 def main():
