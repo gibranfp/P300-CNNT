@@ -15,6 +15,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
 from FCNNmodel import FCNN
 from utils import *
+import tensorflow.keras.backend as K
 
 def evaluate_cross_subject_model(data, labels, modelpath):
     """
@@ -45,7 +46,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                                                                    np.unique(groups[v])))
 
          # channel-wise feature standarization                                                             
-        sc = EEGChannelScaler()                                                                           
+        sc = EEGChannelScaler(n_channels = n_channels)                                                                           
         X_train = sc.fit_transform(X_train).reshape(X_train.shape[0], X_train.shape[1] * X_train.shape[2])                                                               
         X_valid = sc.transform(X_valid).reshape(X_valid.shape[0], X_valid.shape[1] * X_valid.shape[2])                                                                  
         X_test = sc.transform(X_test).reshape(X_test.shape[0], X_test.shape[1] * X_test.shape[2])                                                                     
@@ -65,6 +66,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         proba_test = model.predict(X_test)
         aucs[k] = roc_auc_score(y_test, proba_test)
         print('P{0} -- AUC: {1}'.format(k, aucs[k]))
+        K.clear_session()
         
     np.savetxt(modelpath + '/aucs.npy', aucs)
 

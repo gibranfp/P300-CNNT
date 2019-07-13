@@ -15,6 +15,7 @@ from BN3model import BN3
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import *
 from utils import *
+import tensorflow.keras.backend as K
 
 def evaluate_cross_subject_model(data, labels, modelpath):
     """
@@ -45,12 +46,12 @@ def evaluate_cross_subject_model(data, labels, modelpath):
                                                                    np.unique(groups[v])))
              
         # channel-wise feature standarization                                                             
-        sc = EEGChannelScaler()                                                                           
+        sc = EEGChannelScaler(n_channels = n_channels)                                                                           
         X_train = sc.fit_transform(X_train)                                                               
         X_valid = sc.transform(X_valid)                                                                   
         X_test = sc.transform(X_test)                                                                     
                                                                                                           
-        model = BN3()                                                                                     
+        model = BN3(Chans = n_channels, Samples = n_samples)                                                                           
         print(model.summary())                                                                            
         model.compile(optimizer = 'adam', loss = 'binary_crossentropy')                                   
                                                                                                           
@@ -66,7 +67,8 @@ def evaluate_cross_subject_model(data, labels, modelpath):
         proba_test = model.predict(X_test)                                                               
         aucs[k] = roc_auc_score(y_test, proba_test)                                                       
         print('P{0} -- AUC: {1}'.format(k, aucs[k]))
-                                                                                                          
+        K.clear_session()
+        
     np.savetxt(modelpath + '/aucs.npy', aucs)                                                                 
     
 def main():
