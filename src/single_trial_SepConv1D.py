@@ -13,6 +13,7 @@ import sys
 import numpy as np
 from SepConv1D import SepConv1D
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow import set_random_seed
 from sklearn.model_selection import *
 from utils import *
 import tensorflow.keras.backend as K
@@ -82,6 +83,7 @@ def main():
         args = parser.parse_args()
 
         np.random.seed(1)
+        set_random_seed(2)
         
         data, labels = load_db(args.datapath, args.labelspath)
         evaluate_subject_models(data, labels, args.modelpath, args.subject, n_filters = args.n_filters)
