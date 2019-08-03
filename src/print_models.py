@@ -20,9 +20,29 @@ names = {
     'cnnr': (CNNR, {}),
     'fcnn': (FCNN, {}),
     'oclnn': (OCLNN, {}),
+    'sepconv1d64': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 64}),
+    'sepconv1d60': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 60}),
+    'sepconv1d56': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 56}),
+    'sepconv1d52': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 52}),
+    'sepconv1d48': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 48}),
+    'sepconv1d44': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 44}),
+    'sepconv1d40': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 40}),
+    'sepconv1d36': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 36}),
     'sepconv1d32': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 32}),
+    'sepconv1d28': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 28}),
+    'sepconv1d24': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 24}),
+    'sepconv1d20': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 20}),
     'sepconv1d16': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 16}),
-    'sepconv1d8': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 8})
+    'sepconv1d12': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 12}),
+    'sepconv1d8': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 8}),
+    'sepconv1d4': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 4}),
+    'sepconv1d2': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 2}),
+    'sepconv1d1': (SepConv1D, {'Chans': 6, 'Samples': 206, 'Filters': 1}),
+    'sepconv1dc1': (SepConv1D, {'Chans': 1, 'Samples': 206, 'Filters': 32}),
+    'sepconv1dc2': (SepConv1D, {'Chans': 2, 'Samples': 206, 'Filters': 32}),
+    'sepconv1dc3': (SepConv1D, {'Chans': 3, 'Samples': 206, 'Filters': 32}),
+    'sepconv1dc4': (SepConv1D, {'Chans': 4, 'Samples': 206, 'Filters': 32}),
+    'sepconv1dc5': (SepConv1D, {'Chans': 5, 'Samples': 206, 'Filters': 32})
 }
 
 def main():

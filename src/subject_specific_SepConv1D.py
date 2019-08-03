@@ -24,7 +24,7 @@ def evaluate_subject_models(data, labels, modelpath, subject, n_filters = 32):
     using repeated stratified K-fold cross validation.
     """
     n_sub = data.shape[0]
-    n_ex_sub = data.shape[1]
+    n_trials = data.shape[1]
     n_samples = data.shape[2]
     n_channels = data.shape[3]
     aucs = np.zeros(5 * 10)
