@@ -17,10 +17,13 @@ def compute_mean_auc(aucpath, title):
     """
     Compute mean AUC
     """
-    aucs = np.zeros((22,50))
-    for i in range(22):
-        aucs[i, :] = np.loadtxt(aucpath + '/s' + str(i) + '_aucs.npy')
-        
+
+    aucfiles = [f for f in os.listdir(aucpath) if os.path.isfile(os.path.join(aucpath, f))]
+    aucs = []
+    for i,f in enumerate(aucfiles):
+        aucs.append(np.loadtxt(aucpath + '/' + f))
+    aucs = np.array(aucs)
+
     print('---------' + title + '---------')
     print('Average Mean AUC: {0}'.format(aucs.mean()))
     print('std(mean(aucs_per_subject)): {0}'.format(aucs.mean(axis = 1).std()))
