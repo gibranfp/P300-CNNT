@@ -1,4 +1,4 @@
-for i in `seq 0 21`;
+for i in `seq 0 $1`;
 do
-    python3 $1 $2 $3 $4 --subject $i
+    python3 $2 $3 $4 $5 --subject $i
 done
