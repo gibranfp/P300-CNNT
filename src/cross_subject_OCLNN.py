@@ -11,11 +11,11 @@ Script to evaluate the OCLNN architecture for single-trial cross-subject P300 de
 import argparse
 import sys
 import numpy as np
+from OCLNN import OCLNN
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from tensorflow import set_random_seed
 from sklearn.model_selection import *
-from OCLNN import OCLNN
 from utils import *
 import tensorflow.keras.backend as K
 
@@ -29,7 +29,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     n_samples = data.shape[2]
     n_channels = data.shape[3]
 
-    aucs = np.zeros(22)
+    aucs = np.zeros(n_sub)
 
     data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
     labels = labels.reshape((n_sub * n_ex_sub))
@@ -38,7 +38,6 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     cv = LeaveOneGroupOut()
     for k, (t, v) in enumerate(cv.split(data, labels, groups)):
         X_train, y_train, X_test, y_test = data[t], labels[t], data[v], labels[v]
-
         rg = np.random.choice(t, 1)
         sv = groups[t] == groups[rg]
         st = np.logical_not(sv)

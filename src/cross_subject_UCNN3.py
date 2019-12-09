@@ -29,7 +29,7 @@ def evaluate_cross_subject_model(data, labels, modelpath):
     n_samples = data.shape[2]
     n_channels = data.shape[3]
 
-    aucs = np.zeros(22)
+    aucs = np.zeros(n_sub)
 
     data = data.reshape((n_sub * n_ex_sub, n_samples, n_channels))
     labels = labels.reshape((n_sub * n_ex_sub))
