@@ -3,7 +3,7 @@ This repository evaluates different state-of-the-art CNN arquitectures for P300 
 
 ## Requirements
 * Python 3.7
-* Tensorflow 1.12.0
+* Tensorflow 1.13.1
 * NumPy
 * matplotlib
 * scikit-learn
