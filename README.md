@@ -31,9 +31,9 @@ We evaluate the following state-of-the-art CNN architectures:
 
 * CNN1 and CNN3 (as well as slight modifications of them)
   + Cecotti, H., & Graser, A. (2010). Convolutional neural networks for P300 detection with application to brain-computer interfaces. _IEEE transactions on pattern analysis and machine intelligence_, 33(3), 433-445.
-* EEGNet (@vlawhern [implementation](https://github.com/vlawhern/arl-eegmodels))
+* EEGNet ([@vlawhern](https://github.com/vlawhern) [implementation](https://github.com/vlawhern/arl-eegmodels))
   + Lawhern, V. J., Solon, A. J., Waytowich, N. R., Gordon, S. M., Hung, C. P., & Lance, B. J. (2018). EEGNet: a compact convolutional neural network for EEG-based brain–computer interfaces. _Journal of neural engineering_, 15(5), 056013.
-* ShallowConvNet and DeepConvNet (@vlawhern [implementation](https://github.com/vlawhern/arl-eegmodels))
+* ShallowConvNet and DeepConvNet ([@vlawhern](https://github.com/vlawhern) [implementation](https://github.com/vlawhern/arl-eegmodels))
   + Schirrmeister, R. T., Springenberg, J. T., Fiederer, L. D. J., Glasstetter, M., Eggensperger, K., Tangermann, M., Hutter, F., Burgard, W., & Ball, T. (2017). Deep learning with convolutional neural networks for EEG decoding and visualization. _Human brain mapping_, 38(11), 5391-5420.
 * OCLNN
   + Shan, H., Liu, Y., & Stefanov, T. P. (2018, July). A Simple Convolutional Neural Network for Accurate P300 Detection and Character Spelling in Brain Computer Interface. In Proceedings of the 27th International Joint Conference on Artificial Intelligence, Stockholm, Sweden, 13-19 July 2018, 1604-1610.
@@ -45,7 +45,9 @@ We evaluate the following state-of-the-art CNN architectures:
 We also propose and evaluate a simple CNN architecture inspired by OCLNN (SepConv1D) and a Fully-Connected Neural Network with a single hidden layer with two neurons (FCNN).
 
 ## Results 
+
 ![alt text](figs/epochs_auc.svg "Epochs vs AUC")
+
 ![alt text](figs/inference_time_auc.svg "Inference time vs AUC")
 
 ## Reference
