@@ -1,4 +1,4 @@
-name: p300_cnn
+name: p300cnn
 channels:
    - defaults
    - anaconda
@@ -6,6 +6,8 @@ channels:
 dependencies:
    - python>=3.7
    - numpy
+   - scipy
+   - pandas
    - matplotlib
    - scikit-learn
    - cudatoolkit=10.0
