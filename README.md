@@ -31,9 +31,9 @@ We evaluate the following state-of-the-art CNN architectures for within-subject 
 
 * CNN1 and CNN3 (as well as slight modifications of them)
   + Cecotti, H., & Graser, A. (2010). Convolutional neural networks for P300 detection with application to brain-computer interfaces. _IEEE transactions on pattern analysis and machine intelligence_, 33(3), 433-445. [[link](https://ieeexplore.ieee.org/document/5492691)]
-* EEGNet ([@vlawhern's implementation](https://github.com/vlawhern/arl-eegmodels))
+* EEGNet ([@vlawhern's implementation](https://github.com/vlawhern/arl-eegmodels): file [`src/EEGModels.py`](src/EEGModels.py))
   + Lawhern, V. J., Solon, A. J., Waytowich, N. R., Gordon, S. M., Hung, C. P., & Lance, B. J. (2018). EEGNet: a compact convolutional neural network for EEG-based brain–computer interfaces. _Journal of neural engineering_, 15(5), 056013. [[link](https://iopscience.iop.org/article/10.1088/1741-2552/aace8c)] [[preprint](https://arxiv.org/abs/1611.08024)]
-* ShallowConvNet and DeepConvNet ([@vlawhern's implementation](https://github.com/vlawhern/arl-eegmodels))
+* ShallowConvNet and DeepConvNet ([@vlawhern's implementation](https://github.com/vlawhern/arl-eegmodels): file [`src/EEGModels.py`](src/EEGModels.py))
   + Schirrmeister, R. T., Springenberg, J. T., Fiederer, L. D. J., Glasstetter, M., Eggensperger, K., Tangermann, M., Hutter, F., Burgard, W., & Ball, T. (2017). Deep learning with convolutional neural networks for EEG decoding and visualization. _Human brain mapping_, 38(11), 5391-5420. [[link](https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.23730)] [[preprint](https://arxiv.org/abs/1703.05051)]
 * OCLNN
   + Shan, H., Liu, Y., & Stefanov, T. P. (2018, July). A Simple Convolutional Neural Network for Accurate P300 Detection and Character Spelling in Brain Computer Interface. In Proceedings of the 27th International Joint Conference on Artificial Intelligence, Stockholm, Sweden, 13-19 July 2018, 1604-1610. [[link](https://www.ijcai.org/Proceedings/2018/222)]
